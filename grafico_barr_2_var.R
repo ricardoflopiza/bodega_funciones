@@ -1,0 +1,151 @@
+library(readxl)
+library(readr)
+library(dplyr)
+library(xlsx)
+library(ggplot2)
+library(tidyverse)
+library(scales)
+library(extrafont)
+library(RColorBrewer)
+library(viridis)
+library(tidyverse)
+library(forcats)
+library(readxl)
+library(ggforce)
+library(openxlsx)
+library(ggfittext)
+
+source("/home/ricardo/Documents/coding/R/bodega_funciones/tema_elegante_ggplot.R")
+
+test = F
+
+
+if(test == T){
+  
+  g2016si = xlsx::read.xlsx("/home/ricardo/Documents/FDMM Seguimiento Ex alumnos/2020/2-Analisis_logradas_gestion_encuestas/bases/Estudio_2020_Egresados_2016_Respuestas.xlsx",1)
+
+ base = g2016si
+ var = "Curso"
+ var2 =  "X11...Que.estas.estudiando."
+ size.ejes = 7
+ size.text = 7
+ ancho = 0.9
+ horizont = F
+ legend.pos = "right"
+ leg.color = "black"
+ nomx = ""
+ nomy = ""
+ et.eje.x = T
+ et.eje.y = T
+ eje.color = "black"
+ stack = T
+ lab.text = T
+ lab.size = 10
+ lab.crece = F
+ lab.contrast = F
+ label.pos.text = "center"
+ color = unique(c("#ed7d31", "#5b9bd5", "#a5a5a5", "#4472c4",wesanderson::wes_palettes$Darjeeling1, wesanderson::wes_palettes$Darjeeling2,wesanderson::wes_palettes$BottleRocket1))
+ cat.filtro = F
+ cat.min = 100
+ exclud.NA = T 
+
+ }
+
+  
+
+grafico_barr_2_var = function(base,
+                              var, 
+                              var2, 
+                              size.ejes = 7, 
+                              size.text = 7, 
+                              ancho = 0.9, 
+                              horizont = T,
+                              legend.pos = "right",
+                              leg.color = "black",
+                              nomx = "",
+                              nomy = "",
+                              et.eje.x = T,
+                              et.eje.y = T,
+                              eje.color = "black",
+                              stack = F,
+                              lab.text = T,
+                              lab.crece = F,
+                              lab.contrast = F,
+                              label.pos.text = "center", #'topleft', 'top', 'topright', 'right', 'bottomright', 'bottom', 'bottomleft', 'left', and 'center'/'middle' which are both synonyms for 'centre'.
+                              color = unique(c("#ed7d31", "#5b9bd5", "#a5a5a5", "#4472c4",wesanderson::wes_palettes$Darjeeling1, wesanderson::wes_palettes$Darjeeling2,wesanderson::wes_palettes$BottleRocket1)),
+                              cat.filtro = F,
+                              cat.min = 0,
+                              exclud.NA = T,
+                              geom_bar_text = T
+){
+  
+  
+  if(stack == F){
+  
+    
+    dt2 = data.frame(table(base[[var]],base[[var2]], exclude = F))
+  
+    dt3 = dt2[!dt2$Var1 %in% c("","NULL") | !dt2$Var2 %in% c("","NULL"),] # %>%  filter(!var )
+    
+    dt3 = dt3[dt3$Freq > 0,]
+    if(cat.filtro == T){dt3 = dt3[dt3$Freq > cat.min,]}
+    
+    if(exclud.NA == T){dt3 = dt3[!is.na(dt3[["Var1"]]) & !is.na(dt3[["Var2"]]),]}
+    
+    dt3
+    
+    
+  }else{
+    
+    
+    base1 = base[!base[[var]] %in% c("","NULL") | !base[[var2]] %in% c("","NULL"),] 
+    
+    if(exclud.NA == T){ base1 = base1[!is.na(base1[[var]]) & !is.na(base1[[var2]]),] }
+    
+    dt  = data.frame(prop.table(table(base1[[var]],base1[[var2]], exclude = F),1))
+    dt3 = cbind(data.frame(table(base1[[var]],base1[[var2]], exclude = F)), dt$Freq)
+    names(dt3) = c("Var1","Var2","n","Freq") 
+    
+    dt3 = dt3[dt3$n > 0,]
+    if(cat.filtro == T){dt3 = dt3[dt3$n > cat.min,]}
+  } 
+  
+  if(stack == F ){
+    prop = ggplot(dt3, aes(Var1,Freq, fill = Var2))
+  }else{
+    prop = ggplot(dt3, aes(Var1,Freq, fill = Var2, label = percent(Freq,accuracy = 0.01)))
+  }
+  
+  prop = prop   + {
+    if(stack == F)
+      geom_bar(position = "dodge", stat = "identity", width = ancho) else
+        geom_bar(position = "stack", stat = "identity", width = ancho) }+
+    theme_elegante() + 
+    theme(legend.position = legend.pos, legend.text = element_text(colour= leg.color), axis.text.y = element_text(color = eje.color), axis.text.x = element_text(color = eje.color)) + {
+      #### condicional para texto de ejes
+      if(et.eje.x == F)  theme(axis.text.x = element_blank()) }+{  
+        if(et.eje.y == F)  theme(axis.text.y = element_blank())  }+{
+          if(lab.text == T){
+            if(stack == F){
+              ### condicional Horizonral o vertical, etiquetas
+              if(horizont == F)  
+                geom_bar_text(position = "dodge", place = label.pos.text, contrast = lab.contrast, grow = lab.crece)
+            }else{
+              geom_bar_text(position = "stack", place = label.pos.text, contrast = lab.contrast, grow = lab.crece) 
+              #geom_text(aes(var, Freq, label = paste0(round(porc, digit = 2),"%")), size = 4, position = position_stack(vjust = .5))
+            }}}+{
+              if(horizont == F)  coord_flip() 
+            }+{
+              if(stack == T) scale_y_continuous(labels = scales::percent) 
+            }+
+    labs(x =nomx, y = nomy) +
+    scale_fill_manual(values= color)
+  
+  return(prop)
+
+}
+
+if(test == T){
+grafico_barr_2_var(base = g2016si,  var = "Curso",
+                   var2 =  "X13...Estas.estudiando.lo.que.querías.estudiar.", stack = T,exclud.NA = T)
+}

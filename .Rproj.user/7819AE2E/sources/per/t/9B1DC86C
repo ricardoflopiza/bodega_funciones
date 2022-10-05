@@ -1,0 +1,24 @@
+{
+    "id": "9B1DC86C",
+    "path": "~/Documents/coding/R/bodega_funciones/grafico_barr_2_var.R",
+    "project_path": "grafico_barr_2_var.R",
+    "type": "r_source",
+    "hash": "1238193588",
+    "contents": "",
+    "dirty": false,
+    "created": 1609895556382.0,
+    "source_on_save": false,
+    "relative_order": 1,
+    "properties": {
+        "cursorPosition": "19,8",
+        "scrollLine": "15"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1609899712,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1609899712308,
+    "read_only": false,
+    "read_only_alternatives": []
+}
